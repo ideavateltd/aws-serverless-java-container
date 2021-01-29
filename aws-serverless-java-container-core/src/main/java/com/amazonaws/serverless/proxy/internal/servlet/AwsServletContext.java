@@ -206,15 +206,11 @@ public class AwsServletContext
                 continue;
             }
             String[] regParts = p.split("/");
-            // If there are more parts in the mapping than in the requested path (allowing for a trailing /*) then move on
-            if (regParts.length > (pathParts.length + 1)) {
-                continue;
-            }
             for (int i = 0; i < regParts.length; i++) {
-                if (!regParts[i].equals(pathParts[i]) && !"*".equals(regParts[i])) {
+                if (!"*".equals(regParts[i]) && !regParts[i].equals(pathParts[i])) {
                     break;
                 }
-                if (i == regParts.length - 1 && (regParts[i].equals(pathParts[i]) || "*".equals(regParts[i]))) {
+                if (i == regParts.length - 1 && ("*".equals(regParts[i]) || regParts[i].equals(pathParts[i]))) {
                     return reg.getServlet();
                 }
             }
