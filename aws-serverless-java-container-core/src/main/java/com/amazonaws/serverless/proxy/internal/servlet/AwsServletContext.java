@@ -193,8 +193,8 @@ public class AwsServletContext
             }
         }
 
-        // sort the paths alphabetically. Ideally is an approximation of specificity
-        List<String> orderedPaths = allPathMappings.keySet().stream().sorted().collect(Collectors.toList());
+        // sort the paths by length as an approximation of specificity
+        List<String> orderedPaths = allPathMappings.keySet().stream().sorted((a, b) -> Integer.compare(b.length(), a.length())).collect(Collectors.toList());
 
         for (String p : orderedPaths) {
             AwsServletRegistration reg = allPathMappings.get(p);
