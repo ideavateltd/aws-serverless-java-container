@@ -183,26 +183,39 @@ public class AwsServletContext
 
     public Servlet getServletForPath(String path) {
         String[] pathParts = path.split("/");
+
+        // build map of all path mappings
+        // n.b. this doesn't handle where two servlets have the same path mapped
+        Map<String, AwsServletRegistration> allPathMappings = new HashMap<>();
         for (AwsServletRegistration reg : servletRegistrations.values()) {
             for (String p : reg.getMappings()) {
-                if ("".equals(p) || "/".equals(p) || "/*".equals(p)) {
+                allPathMappings.put(p, reg);
+            }
+        }
+
+        // sort the paths by length as an approximation of specificity
+        List<String> orderedPaths = allPathMappings.keySet().stream().sorted((a, b) -> Integer.compare(b.length(), a.length())).collect(Collectors.toList());
+
+        for (String p : orderedPaths) {
+            AwsServletRegistration reg = allPathMappings.get(p);
+            if ("".equals(p) || "/".equals(p) || "/*".equals(p)) {
+                return reg.getServlet();
+            }
+            // if  I have no path and I haven't matched something now I'll just move on to the next
+            if ("".equals(path) || "/".equals(path)) {
+                continue;
+            }
+            String[] regParts = p.split("/");
+            for (int i = 0; i < regParts.length; i++) {
+                if (!"*".equals(regParts[i]) && !regParts[i].equals(pathParts[i])) {
+                    break;
+                }
+                if (i == regParts.length - 1 && ("*".equals(regParts[i]) || regParts[i].equals(pathParts[i]))) {
                     return reg.getServlet();
-                }
-                // if  I have no path and I haven't matched something now I'll just move on to the next
-                if ("".equals(path) || "/".equals(path)) {
-                    continue;
-                }
-                String[] regParts = p.split("/");
-                for (int i = 0; i < regParts.length; i++) {
-                    if (!regParts[i].equals(pathParts[i]) && !"*".equals(regParts[i])) {
-                        break;
-                    }
-                    if (i == regParts.length - 1 && (regParts[i].equals(pathParts[i]) || "*".equals(regParts[i]))) {
-                        return reg.getServlet();
-                    }
                 }
             }
         }
+
         return null;
     }
 
