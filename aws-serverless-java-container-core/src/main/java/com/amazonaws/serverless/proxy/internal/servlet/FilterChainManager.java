@@ -158,7 +158,7 @@ public abstract class FilterChainManager<ServletContextType extends ServletConte
         TargetCacheKey key = new TargetCacheKey();
         key.setDispatcherType(type);
         key.setTargetPath(targetPath);
-        if (servlet != null) {
+        if (servlet != null && servlet.getServletConfig() != null) {
             key.setServletName(servlet.getServletConfig().getServletName());
         }
 
